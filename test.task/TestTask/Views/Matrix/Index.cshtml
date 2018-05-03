@@ -1,0 +1,90 @@
+﻿@using System;
+@model short[][]
+
+@{
+    ViewBag.Title = "Matrix";
+}
+
+
+<input type="submit" value="Create New" id="create" />
+<input type="submit" value="Turn Matrix" id="turn" />
+<input type="file" name="file" accept=".csv" id="file" />
+<input type="submit" value="Upload" name="file" id="upload" />
+<input type="submit" value="Download Matrix" id="download" />
+
+
+<dix id="data">
+    @{
+        Html.RenderPartial("MatrixPartial", Model);
+    }
+</dix>
+
+
+
+<script type="text/javascript">
+    $("#create").click(function (e) {
+        $('#form').submit();
+        $('#data').load('/Matrix/GenerateMatrix');
+    });
+    $("#turn").click(function (e) {
+        var arr = getData();
+        $('#form').submit();
+        $('#data').load('/Matrix/TurnMatrix', { arr: arr });
+    });
+
+    $("#download").click(function (e) {
+        var arr = getData();
+        $('#form').submit();
+
+        $.ajax({
+            type: "POST",
+            url: '/Matrix/GetDocumentLink',
+            data: { arr: arr },
+            dataType: 'json',
+            success: function (response) {
+                var link = "http://" + location.host + error.responseText.substring(1);
+                window.open(link);
+            },
+            error: function (error) {
+                var link = "http://" + location.host + error.responseText.substring(1);
+                window.open(link);
+            }
+        });
+
+    });
+
+
+    $("#upload").click(function (e) {
+        var formData = new FormData();
+        var count = document.getElementById("file").files.length;
+        if (!count)
+            return;
+
+        var file = document.getElementById("file").files[0];
+        formData.append("file", file);
+
+        $.ajax({
+            type: "POST",
+            url: '/Matrix/UploadFile',
+            data: formData,
+            dataType: 'json',
+            contentType: false,
+            processData: false,
+            success: function (response) {
+                $('#data').empty();
+                $('#data').append(error.responseText);
+            },
+            error: function (error) {
+                $('#data').empty();
+                $('#data').append(error.responseText);
+            }
+        });
+    });
+
+    function getData() {
+        return $("#data").find('tr').map(function () {
+            return [$("td", this).map(function () { return $(this).text(); }).get()];
+        }).get();
+    }
+
+</script>
